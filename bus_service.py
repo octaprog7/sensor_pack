@@ -3,7 +3,7 @@
 # Copyright (c) 2022 Roman Shevchik   goctaprog@gmail.com
 """service class for I/O bus operation"""
 from machine import I2C, SPI, Pin
-from typing import Union
+from typing import Union, Literal
 
 
 class BusAdapter:
@@ -17,7 +17,7 @@ class BusAdapter:
         raise NotImplementedError
 
     def write_register(self, device_addr: int, reg_addr: int, value: int,
-                       bytes_count: int = 2, byte_order: str = "big"):
+                       bytes_count: int = 2, byte_order: Literal["little", "big"] = "big"):
         """записывает данные value в датчик, по адресу reg_addr.
         bytes_count - кол-во записываемых данных"""
         raise NotImplementedError
