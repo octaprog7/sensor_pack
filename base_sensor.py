@@ -5,7 +5,6 @@ from typing import Union
 
 class BaseSensor:
     """Base sensor class"""
-
     def __init__(self, adapter: bus_service.BusAdapter, address: Union[int, Pin]):
         self.adapter = adapter
         self.address = address
