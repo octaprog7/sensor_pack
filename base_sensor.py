@@ -6,6 +6,13 @@ import ustruct
 from sensor_pack import bus_service
 
 
+@micropython.native
+def check_value(value: int, valid_range, error_msg: str) -> int:
+    if value not in valid_range:
+        raise ValueError(error_msg)
+    return value
+
+
 class BaseSensor:
     """Base sensor class"""
 
