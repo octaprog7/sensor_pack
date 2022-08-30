@@ -17,7 +17,7 @@ def crc8(sequence, polynomial: int, init_value: int = 0x00):
     mask = 0xFF
     crc = init_value & mask
     for item in sequence:
-        crc = crc ^ (item & mask)
+        crc ^= item & mask
         for _ in range(8):
             if crc & 0x80:
                 crc = mask & ((crc << 1) ^ polynomial)
