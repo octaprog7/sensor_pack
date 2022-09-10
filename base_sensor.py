@@ -13,19 +13,19 @@ def check_value(value: int, valid_range, error_msg: str) -> int:
     return value
 
 
-class BaseSensor:
-    """Base sensor class"""
+class Device:
+    """Base device class"""
 
     def __init__(self, adapter: bus_service.BusAdapter, address: int, big_byte_order: bool):
-        """Базовый класс Датчик.
-        Если big_byte_order равен True -> порядок байтов в регистрах датчика «big»
+        """Базовый класс Устройство.
+        Если big_byte_order равен True -> порядок байтов в регистрах устройства «big»
         (Порядок от старшего к младшему), в противном случае порядок байтов в регистрах "little"
         (Порядок от младшего к старшему)
-        address - адрес датчика на шине.
+        address - адрес устройства на шине.
 
-        Base sensor class. if big_byte_order is True -> register values byteorder is 'big'
+        Base device class. if big_byte_order is True -> register values byteorder is 'big'
         else register values byteorder is 'little'
-        address - address of the sensor on the bus."""
+        address - address of the device on the bus."""
         self.adapter = adapter
         self.address = address
         self.big_byte_order = big_byte_order
@@ -49,6 +49,9 @@ class BaseSensor:
     def is_big_byteorder(self) -> bool:
         return self.big_byte_order
 
+
+class BaseSensor(Device):
+    """Base sensor class"""
     def get_id(self):
         raise NotImplementedError
 
