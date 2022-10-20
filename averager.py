@@ -17,7 +17,7 @@ class Averager:
         self._max = items_count
         self._index = 0
         self._cnt = 0
-        self.arr = array.array(type_code, [0 for i in range(items_count)])
+        self.arr = array.array(type_code, [0 for _ in range(items_count)])
 
     def put(self, value: int) -> int:
         """Возвращает среднее арифметическое, основанное на сумме накопленных элементов.
