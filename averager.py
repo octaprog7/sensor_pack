@@ -16,6 +16,7 @@ class Averager:
             raise ValueError(f"Invalid type_code value: {type_code}")
         self._max = items_count
         self._index = 0
+        self._cnt = 0
         self.arr = array.array(type_code, [0 for i in range(items_count)])
 
     def put(self, value: int) -> int:
@@ -26,5 +27,8 @@ class Averager:
             self._index += 1
         else:
             self._index = 0
+        ###
+        if self._cnt < self._max:
+            self._cnt += 1
 
-        return sum(self.arr) // self._max
+        return sum(self.arr) // self._cnt
