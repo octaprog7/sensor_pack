@@ -1,4 +1,8 @@
-"""Усреднитель/Averager.
+"""
+MIT License
+Copyright (c) 2022 Roman Shevchik
+
+Усреднитель/Averager.
 Хорошо подходит для усреденения физических величин, считанных с датчиков (температура, давление, влажность).
 Well suited for averaging physical quantities read from sensors (temperature, pressure, humidity)."""
 import array
