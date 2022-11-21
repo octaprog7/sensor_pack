@@ -4,6 +4,7 @@
 import micropython
 import ustruct
 from sensor_pack import bus_service
+from machine import SPI
 
 
 @micropython.native
@@ -16,7 +17,7 @@ def check_value(value: int, valid_range, error_msg: str) -> int:
 class Device:
     """Base device class"""
 
-    def __init__(self, adapter: bus_service.BusAdapter, address: int, big_byte_order: bool):
+    def __init__(self, adapter: bus_service.BusAdapter, address: [int, SPI], big_byte_order: bool):
         """Базовый класс Устройство.
         Если big_byte_order равен True -> порядок байтов в регистрах устройства «big»
         (Порядок от старшего к младшему), в противном случае порядок байтов в регистрах "little"
@@ -28,7 +29,12 @@ class Device:
         address - address of the device on the bus."""
         self.adapter = adapter
         self.address = address
+        # for I2C. byte order in register of device
         self.big_byte_order = big_byte_order
+        # for SPI ONLY. При передаче данных по SPI: SPI.firstbit can be SPI.MSB or SPI.LSB
+        # передавать первым битом старший или младший
+        # для каждого устройства!
+        self.msb_first = True
 
     def _get_byteorder_as_str(self) -> tuple:
         """Return byteorder as string"""
