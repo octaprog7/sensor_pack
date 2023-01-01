@@ -1,39 +1,32 @@
 # micropython
 # MIT license
 # Copyright (c) 2022 Roman Shevchik   goctaprog@gmail.com
-"""service class for I/O bus operation"""
+"""MicroPython модуль для работы с шинами ввода/вывода"""
 
 from machine import I2C, SPI, Pin
 
 
 class BusAdapter:
-    """Proxy between I/O bus and device I/O class"""
+    """Посредник между шиной ввода/вывода и классом ввода/вывода устройства"""
     def __init__(self, bus: [I2C, SPI]):
         self.bus = bus
 
     def get_bus_type(self) -> type:
-        """Return type of bus"""
+        """Возвращает тип шины"""
         return type(self.bus)
 
     def read_register(self, device_addr: [int, Pin], reg_addr: int, bytes_count: int) -> bytes:
         """считывает из регистра датчика значение.
         device_addr - адрес датчика на шине. Для шины SPI это физический вывод MCU!
         reg_addr - адрес регистра в адресном пространстве датчика.
-        bytes_count - размер значения в байтах.
-        reads value from sensor register.
-        device_addr - address of the sensor on the bus.
-        reg_addr - register address in the address space of the sensor"""
+        bytes_count - размер значения в байтах."""
         raise NotImplementedError
 
     def write_register(self, device_addr: [int, Pin], reg_addr: int, value: [int, bytes, bytearray],
                        bytes_count: int, byte_order: str):
         """записывает данные value в датчик, по адресу reg_addr.
         bytes_count - кол-во записываемых байт из value.
-        byte_order - порядок расположения байт в записываемом значении.
-        writes value data to the sensor, at reg_addr.
-        bytes_count - number of bytes written from value.
-        byte_order - the order of bytes in the value being written.
-        """
+        byte_order - порядок расположения байт в записываемом значении."""
         raise NotImplementedError
 
     def read(self, device_addr: [int, Pin], n_bytes: int) -> bytes:
@@ -41,6 +34,30 @@ class BusAdapter:
 
     def write(self, device_addr: [int, Pin], buf: bytes):
         raise NotImplementedError
+
+    def write_const(self, device_addr: [int, Pin], val: int, count: int):
+        """Отправляет пакет байт со значение val количеством count на шину.
+        Часто, при работе с дисплеями или памятью, требуется заполнение экрана/области
+        постоянным значением. Для этого и предназначен этот метод!
+        Вызов его для сравнительно медленных шин - плохая идея!"""
+        if 0 == count:
+            return  # нет ничего
+        bl = val.bit_length()
+        if bl > 8:
+            raise ValueError(f"The value must take no more than 8 bits! Current: {bl}")
+        _max = 16
+        if count < _max:
+            _max = count
+        # вычисляю кол-во повторений тела цикла
+        repeats = count // _max  # количество итераций
+        b = bytearray([val for _ in range(_max)])
+        for _ in range(repeats):
+            self.write(device_addr, b)
+        # вычисляю остаток
+        remainder = count - _max * repeats
+        if remainder:
+            b = bytearray([val for _ in range(remainder)])
+            self.write(device_addr, b)
 
 
 class I2cAdapter(BusAdapter):
@@ -71,9 +88,7 @@ class I2cAdapter(BusAdapter):
     
     def read_buf_from_mem(self, device_addr: int, mem_addr, buf):
         """Читает из устройства с адресом device_addr в буфер buf, начиная с адреса в устройстве mem_addr.
-        Количество считываемых байт определяется длинной буфера buf.
-        Reads from device address device_addr into buf, starting at the address in device mem_addr.
-        The number of bytes read is determined by the length of the buffer buf"""
+        Количество считываемых байт определяется длинной буфера buf."""
         return self.bus.readfrom_mem_into(device_addr, mem_addr, buf)
 
     def write(self, device_addr: int, buf: bytes):
@@ -81,9 +96,7 @@ class I2cAdapter(BusAdapter):
 
     def write_buf_to_mem(self, device_addr: int, mem_addr, buf):
         """Записывает в устройство с адресом device_addr все байты из буфера buf.
-        Запись начинается с адреса в устройстве: mem_addr.
-        Writes to device address device_addr all the bytes in buf.
-        The entry starts at an address in the device: mem_addr."""
+        Запись начинается с адреса в устройстве: mem_addr."""
         return self.bus.writeto_mem(device_addr, mem_addr, buf)
 
 
