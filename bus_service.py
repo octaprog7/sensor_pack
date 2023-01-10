@@ -3,7 +3,16 @@
 # Copyright (c) 2022 Roman Shevchik   goctaprog@gmail.com
 """MicroPython модуль для работы с шинами ввода/вывода"""
 
+import math
 from machine import I2C, SPI, Pin
+
+
+def _mpy_bl(value: int) -> int:
+    """Возвращает место, занимаемое значением value в битах.
+    Аналог int.bit_length(), которая есть в Python, но отсутствует в MicroPython!"""
+    if 0 == value:
+        return 0
+    return 1 + int(math.log2(abs(value)))
 
 
 class BusAdapter:
@@ -42,7 +51,8 @@ class BusAdapter:
         Вызов его для сравнительно медленных шин - плохая идея!"""
         if 0 == count:
             return  # нет ничего
-        bl = val.bit_length()
+        # bl = val.bit_length()     # bit_length() отсутствует в MicroPython
+        bl = _mpy_bl(val)
         if bl > 8:
             raise ValueError(f"The value must take no more than 8 bits! Current: {bl}")
         _max = 16
