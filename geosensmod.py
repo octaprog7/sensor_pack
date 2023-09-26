@@ -44,8 +44,7 @@ def axis_name_to_reg_addr(axis_name: int, offset: int, multiplier: int) -> int:
 
 
 class GeoMagneticSensor(BaseSensor):
-    """Родительский класс для датчика магнитного поля (Земли в том числе :-) )
-    Содержит все необходимые методы, переопределив которые можно описать большинство датчиков-компас-магнитометр"""
+    """Методы для датчика магнитного поля (Земли в том числе :-) )"""
     def get_axis(self, axis: [int, str]) -> [int, tuple]:
         """Возвращает X(axis==0), Y(axis==1) или Z(axis==2) составляющую магнитного поля.
         Returns the X(axis==0), Y(axis==1) or Z(axis==2) component of the magnetic field.
@@ -92,10 +91,10 @@ class GeoMagneticSensor(BaseSensor):
 
     def get_meas_result(self, axis_name: [str, int]) -> int:
         """Возвращает измеренное значение по оси axis_name в 'сырых'/инженерных единицах"""
-        _axis_name = axis_name if isinstance(axis_name, int) else _axis_name_to_int(axis_name)
-        return self.read_raw(_axis_name)
+        _axis = axis_name if isinstance(axis_name, int) else _axis_name_to_int(axis_name)
+        return self.read_raw(_axis)
 
-    def read_raw(self, axis_name: int) -> int:
+    def read_raw(self, axis: int) -> int:
         """Что бы никогда не трогать метод get_meas_result.
         Для переопределения программистом!!!"""
         raise NotImplementedError
@@ -107,12 +106,5 @@ class GeoMagneticSensor(BaseSensor):
 
     def start_measure(self):
         """Запускает однократное или периодические измерение(я).
-        Для переопределения программистом!!!"""
-        raise NotImplementedError
-
-
-class SensorWithTemp:
-    def get_temperature(self) -> [int, float]:
-        """Возвращает температуру корпуса датчика в градусах Цельсия! В датчике должен быть вторичный сенсор!
         Для переопределения программистом!!!"""
         raise NotImplementedError
