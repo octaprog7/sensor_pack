@@ -95,6 +95,10 @@ class I2cAdapter(BusAdapter):
 
     def read(self, device_addr: int, n_bytes: int) -> bytes:
         return self.bus.readfrom(device_addr, n_bytes)
+
+    def readfrom_into(self, device_addr: int, buf):
+        """Читает из устройства на шине с адресом device_addr в буфер buf количество байт, равное длине(len) буфера!"""
+        return self.bus.readfrom_into(device_addr, buf)
     
     def read_buf_from_mem(self, device_addr: int, mem_addr, buf):
         """Читает из устройства с адресом device_addr в буфер buf, начиная с адреса в устройстве mem_addr.
