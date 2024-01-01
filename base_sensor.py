@@ -11,6 +11,8 @@ from machine import SPI
 
 @micropython.native
 def check_value(value: int, valid_range, error_msg: str) -> int:
+    if value is None:
+        return value
     if value not in valid_range:
         raise ValueError(error_msg)
     return value
