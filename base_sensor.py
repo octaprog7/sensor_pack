@@ -2,15 +2,15 @@
 # MIT license
 # Copyright (c) 2022 Roman Shevchik   goctaprog@gmail.com
 import struct
-
 import micropython
-import ustruct
 from sensor_pack import bus_service
 from machine import SPI
 
 
 @micropython.native
-def check_value(value: int, valid_range, error_msg: str) -> int:
+def check_value(value: [int, None], valid_range, error_msg: str) -> [int, None]:
+    if value is None:
+        return value
     if value not in valid_range:
         raise ValueError(error_msg)
     return value
@@ -54,7 +54,7 @@ class Device:
         bo = self._get_byteorder_as_str()[1]
         if redefine_byte_order is not None:
             bo = redefine_byte_order[0]
-        return ustruct.unpack(bo + fmt_char, source)
+        return struct.unpack(bo + fmt_char, source)
 
     @micropython.native
     def is_big_byteorder(self) -> bool:
