@@ -2,15 +2,13 @@
 # MIT license
 # Copyright (c) 2022 Roman Shevchik   goctaprog@gmail.com
 import struct
-
 import micropython
-import ustruct
 from sensor_pack import bus_service
-from machine import SPI
+from machine import Pin
 
 
 @micropython.native
-def check_value(value: int, valid_range, error_msg: str) -> int:
+def check_value(value: [int, None], valid_range, error_msg: str) -> [int, None]:
     if value is None:
         return value
     if value not in valid_range:
@@ -18,10 +16,19 @@ def check_value(value: int, valid_range, error_msg: str) -> int:
     return value
 
 
-class Device:
-    """Base device class"""
+def _all_none(*args):
+    """возвращает Истина, если все входные параметры в None.
+    Добавил 25.01.2024"""
+    for element in args:
+        if element is not None:
+            return False
+    return True
 
-    def __init__(self, adapter: bus_service.BusAdapter, address: [int, SPI], big_byte_order: bool):
+
+class Device:
+    """Класс - основа датчика"""
+
+    def __init__(self, adapter: bus_service.BusAdapter, address: [int, Pin], big_byte_order: bool):
         """Базовый класс Устройство.
         Если big_byte_order равен True -> порядок байтов в регистрах устройства «big»
         (Порядок от старшего к младшему), в противном случае порядок байтов в регистрах "little"
@@ -44,8 +51,7 @@ class Device:
         """Return byteorder as string"""
         if self.is_big_byteorder():
             return 'big', '>'
-        else:
-            return 'little', '<'
+        return 'little', '<'
 
     def unpack(self, fmt_char: str, source: bytes, redefine_byte_order: str = None) -> tuple:
         """распаковка массива, считанного из датчика.
@@ -56,15 +62,67 @@ class Device:
         bo = self._get_byteorder_as_str()[1]
         if redefine_byte_order is not None:
             bo = redefine_byte_order[0]
-        return ustruct.unpack(bo + fmt_char, source)
+        return struct.unpack(bo + fmt_char, source)
 
     @micropython.native
     def is_big_byteorder(self) -> bool:
         return self.big_byte_order
 
 
+class DeviceEx(Device):
+    """Класс - основа датчика. Добавил общие методы доступа к шине. 30.01.2024"""
+    def read_reg(self, reg_addr: int, bytes_count=2) -> bytes:
+        """считывает из регистра датчика значение.
+        bytes_count - размер значения в байтах.
+        Должна быть реализована во всех классах - адаптерах шин, наследников BusAdapter.
+        Добавил 25.01.2024"""
+        return self.adapter.read_register(self.address, reg_addr, bytes_count)
+
+    # BaseSensor
+    def write_reg(self, reg_addr: int, value: [int, bytes, bytearray], bytes_count) -> int:
+        """записывает данные value в датчик, по адресу reg_addr.
+        bytes_count - кол-во записываемых данных.
+        Добавил 25.01.2024"""
+        byte_order = self._get_byteorder_as_str()[0]
+        return self.adapter.write_register(self.address, reg_addr, value, bytes_count, byte_order)
+
+    def read(self, n_bytes: int) -> bytes:
+        """Читает из устройства n_bytes байт. Добавил 25.01.2024"""
+        return self.adapter.read(self.address, n_bytes)
+
+    def read_to_buf(self, buf) -> bytes:
+        """Чтение из устройства в буфер"""
+        return self.adapter.read_to_buf(self.address, buf)
+
+    def write(self, buf: bytes):
+        """Записывает в устройство информацию из buf. Добавил 25.01.2024"""
+        return self.adapter.write(self.address, buf)
+
+    # def _read_buf_from_mem(self, address: int, buf):
+    #    """Читает из устройства, начиная с адреса address в буфер.
+    #    Кол-во читаемых байт равно "длине" буфера в байтах!
+    #    Добавил 25.01.2024. Только для шины I2C, временно!"""
+    #    self.adapter.read_buf_from_mem(self.address, address, buf)
+    #    return buf
+
+    # def write_buf_to_mem(self, mem_addr, buf):
+    #    """Записывает в устройство все байты из буфера buf.
+    #    Запись начинается с адреса в устройстве: mem_addr.
+    #    Добавил 25.01.2024. Только для шины I2C, временно!"""
+    #    return self.bus.writeto_mem(device_addr, mem_addr, buf)
+
+
 class BaseSensor(Device):
-    """Base sensor class"""
+    """Класс - основа датчика с дополнительными методами"""
+    def get_id(self):
+        raise NotImplementedError
+
+    def soft_reset(self):
+        raise NotImplementedError
+
+
+class BaseSensorEx(DeviceEx):
+    """Класс - основа датчика"""
     def get_id(self):
         raise NotImplementedError
 
