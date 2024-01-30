@@ -148,11 +148,12 @@ class SpiAdapter(BusAdapter):
         finally:
             device_addr.high()
 
-    def read_to_buf(self, device_addr: Pin, buf):
+    def read_to_buf(self, device_addr: Pin, buf) -> bytes:
         """Читает из устройства на шине с адресом device_addr в буфер buf количество байт, равное длине(len) буфера!"""
         try:
             device_addr.low()
-            return self.bus.readinto(buf, 0x00)
+            self.bus.readinto(buf, 0x00)
+            return buf
         finally:
             device_addr.high()
 

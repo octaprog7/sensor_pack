@@ -4,7 +4,7 @@
 import struct
 import micropython
 from sensor_pack import bus_service
-from machine import SPI, Pin
+from machine import Pin
 
 
 @micropython.native
@@ -26,7 +26,7 @@ def _all_none(*args):
 
 
 class Device:
-    """Base device class"""
+    """Класс - основа датчика"""
 
     def __init__(self, adapter: bus_service.BusAdapter, address: [int, Pin], big_byte_order: bool):
         """Базовый класс Устройство.
@@ -70,8 +70,8 @@ class Device:
 
 
 class DeviceEx(Device):
-    """Добавил общие методы доступа к шине. 30.01.2024"""
-    def read_reg(self, reg_addr: [int, Pin], bytes_count=2) -> bytes:
+    """Класс - основа датчика. Добавил общие методы доступа к шине. 30.01.2024"""
+    def read_reg(self, reg_addr: int, bytes_count=2) -> bytes:
         """считывает из регистра датчика значение.
         bytes_count - размер значения в байтах.
         Должна быть реализована во всех классах - адаптерах шин, наследников BusAdapter.
@@ -79,7 +79,7 @@ class DeviceEx(Device):
         return self.adapter.read_register(self.address, reg_addr, bytes_count)
 
     # BaseSensor
-    def write_reg(self, reg_addr: [int, Pin], value: [int, bytes, bytearray], bytes_count) -> int:
+    def write_reg(self, reg_addr: int, value: [int, bytes, bytearray], bytes_count) -> int:
         """записывает данные value в датчик, по адресу reg_addr.
         bytes_count - кол-во записываемых данных.
         Добавил 25.01.2024"""
@@ -89,6 +89,10 @@ class DeviceEx(Device):
     def read(self, n_bytes: int) -> bytes:
         """Читает из устройства n_bytes байт. Добавил 25.01.2024"""
         return self.adapter.read(self.address, n_bytes)
+
+    def read_to_buf(self, buf) -> bytes:
+        """Чтение из устройства в буфер"""
+        return self.adapter.read_to_buf(self.address, buf)
 
     def write(self, buf: bytes):
         """Записывает в устройство информацию из buf. Добавил 25.01.2024"""
@@ -109,7 +113,16 @@ class DeviceEx(Device):
 
 
 class BaseSensor(Device):
-    """Base sensor class"""
+    """Класс - основа датчика с дополнительными методами"""
+    def get_id(self):
+        raise NotImplementedError
+
+    def soft_reset(self):
+        raise NotImplementedError
+
+
+class BaseSensorEx(DeviceEx):
+    """Класс - основа датчика"""
     def get_id(self):
         raise NotImplementedError
 
