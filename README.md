@@ -1,9 +1,9 @@
-Base files for my micropython projects
+Базовые файлы для моих проектов на micropython.
+Версия 2.
 
-## Attention!
-Updated files for this project may not be compatible with outdated files from older projects! 
-Mindless copying can break your code!
+## Внимание!
+Обновленные файлы этого проекта могут быть несовместимы с устаревшими файлами из старых проектов!
+Бездумное копирование может сломать ваш код!
 
-[The latest version is here](https://github.com/octaprog7/mcp3421/tree/master/sensor_pack_2)
-
-[Последняя версия находится тут](https://github.com/octaprog7/mcp3421/tree/master/sensor_pack_2)
+В относительно новых проектах файлы находятся в папке sensor_pack_2,
+где 2 - номер версии.
