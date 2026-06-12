@@ -111,6 +111,33 @@ def all_none(*args):
     return True
 
 
+def bytes_to_int(source: bytes, big_byte_order: bool = True, signed: bool = False) -> int | None:
+    """Универсальная конвертация байт в целое число для датчиков с количеством байт на отсчет 3 или более.
+
+    Параметры:
+        source: массив байт для конвертации
+        big_byte_order: True для Big-Endian (MSB первый), False для Little-Endian
+        signed: True для знаковых чисел (дополнительный код)
+
+    Возвращает:
+        int: конвертированное число
+        None: если передан пустой массив"""
+    if not source:
+        return None
+
+    # сборка беззнакового числа на уровне Си
+    n = int.from_bytes(source, 'big' if big_byte_order else 'little')
+
+    # Коррекция знака
+    if signed:
+        bits = len(source) * 8
+        if n & (1 << (bits - 1)):
+            n -= (1 << bits)
+
+    return n
+
+
+
 class Device:
     """Класс - основа датчика"""
 
@@ -288,8 +315,14 @@ class IBaseSensorEx:
     """интерфейсы, обязательные для большинства датчиков"""
 
     def get_conversion_cycle_time(self) -> int:
-        """Возвращает время в мс или мкс преобразования сигнала в цифровой код и готовности его для чтения по шине!
-        Для текущих настроек датчика. При изменении настроек следует заново вызвать этот метод!"""
+        """Возвращает период обновления данных (1/ODR) в МИЛЛИСЕКУНДАХ
+        для текущих настроек датчика.
+        return: Период между измерениями в мс (int)."""
+        raise NotImplementedError()
+
+    def get_adc_conversion_time(self) -> int:
+        """Возвращает чистое время преобразования сигнала АЦП в мкс или мс.
+        Отличается от периода ODR, так как не включает время простоя между измерениями."""
         raise NotImplementedError()
 
     def start_measurement(self):
@@ -305,10 +338,6 @@ class IBaseSensorEx:
         Тип возвращаемого значения выбирайте сами!
         Если raw Истина, то возвращается сырое/не обработанное значение состояния!"""
         raise NotImplementedError()
-
-    #def get_config(self, raw: bool = True):
-    #    """Возвращает текущие настройки датчика. Если raw - в Истина, то возвращается int, иначе произвольный тип."""
-    #    raise NotImplemented
 
     def is_single_shot_mode(self) -> bool:
         """Возвращает Истина, когда датчик находится в режиме однократных измерений,
